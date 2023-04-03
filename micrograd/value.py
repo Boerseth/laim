@@ -40,7 +40,7 @@ class Value:
         return f"Value(data={self.data}, grad={self.grad})"
 
     def __add__(self, other: Data | Value) -> Value:
-        assert isinstance(other, (int, float, Value))
+        assert isinstance(other, (int, float, Value)), other
         other = other if isinstance(other, Value) else Value(data=other)
         return _ValueSum(self.data + other.data, (self, other))
 
@@ -48,7 +48,7 @@ class Value:
         return self + other
 
     def __mul__(self, other: Value) -> Value:
-        assert isinstance(other, (int, float, Value))
+        assert isinstance(other, (int, float, Value)), other
         other = other if isinstance(other, Value) else Value(data=other)
         return _ValueProd(self.data * other.data, (self, other))
 
@@ -59,7 +59,7 @@ class Value:
         return _ValueProd(-self.data, (self, Value(-1)))
 
     def __sub__(self, other: Data | Value) -> Value:
-        assert isinstance(other, (int, float, Value))
+        assert isinstance(other, (int, float, Value)), other
         other = other if isinstance(other, Value) else Value(data=other)
         return _ValueSum(self.data - other.data, (self, -other))
 
@@ -67,7 +67,7 @@ class Value:
         return self - other
 
     def __truediv__(self, other: Data | Value) -> Value:
-        assert isinstance(other, (int, float, Value))
+        assert isinstance(other, (int, float, Value)), other
         other = other if isinstance(other, Value) else Value(data=other)
         return self * other.pow(-1)
 
