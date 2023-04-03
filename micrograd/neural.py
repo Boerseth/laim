@@ -29,7 +29,7 @@ class Layer:
             yield from neuron.parameters()
 
 
-def _apply_pipe(argument: Any, pipe: list[Callable[[Any], Any]]) -> Any:
+def _apply_pipe(pipe: list[Callable[[Any], Any]], argument: Any) -> Any:
     if not pipe:
         return argument
     first, *rest = pipe
@@ -41,10 +41,8 @@ class MultiLayeredNeuralNetwork:
         self.layers = [Layer(di, do) for di, do in zip(dim_layers, dim_layers[1:])]
 
     def __call__(self, axon: list[Value]) -> Value | list[Value]:
-        out = _apply_pipe(axon, self.layers)
-        if len(out) == 1:
-            return out[0]
-        return out
+        out = _apply_pipe(self.layers, axon)
+        return out if len(out) != 1 else out.pop()
 
     def parameters(self) -> Iterator[Value]:
         for layer in self.layers:
