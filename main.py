@@ -41,17 +41,27 @@ def train_nn() -> None:
     show_output([network(x).data for x in training_input])
 
 
+def ngram() -> None:
+    pass
+
+
 def main(
     micrograd: bool,
+    makemore: bool,  # Think about argparse namespaces
 ):
     if micrograd:
         train_nn()
+    if makemore:
+        ngram()
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("gpt", description="Try out ML code")
     parser.add_argument("--micrograd", action="store_true", default=False, help="Train a simple NN")
+    parser.add_argument("--makemore", action="store_true", default=False, help="Generate names by training on n-grams")
     args = parser.parse_args()
     main(
         args.micrograd,
+        args.makemore,
     )
