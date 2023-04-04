@@ -1,0 +1,17 @@
+name: Tests
+run-name: Run tests on branch ${{ github.ref_name }}
+on: [push]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: python main.py --tests
