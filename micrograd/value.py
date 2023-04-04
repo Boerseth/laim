@@ -47,6 +47,12 @@ class Value:
     def pow(self, k: int) -> Value:
         return _ValuePow(self.data**k, self, k)
 
+    def conjugate(self) -> Value:
+        return _ValueConjugate(self.data.conjugate(), self)
+
+    def square_norm(self) -> Value:
+        return self * self.conjugate()
+
     def __add__(self, other: Data | Value) -> Value:
         assert isinstance(other, (int, float, complex, Value)), other
         other = other if isinstance(other, Value) else Value(other)
@@ -134,3 +140,15 @@ class _ValuePow(Value):
 
     def _forward(self) -> None:
         self.data = self.child.data**self.k
+
+
+class _ValueConjugate(Value):
+    def __init__(self, data: Data, child: Value):
+        super().__init__(data, (child,))
+        self.child = child
+
+    def _backward(self) -> None:
+        self.child.grad += self.grad.conjugate()
+
+    def _forward(self) -> None:
+        self.data = self.child.data.conjugate()
