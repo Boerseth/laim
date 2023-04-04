@@ -3,7 +3,7 @@ from __future__ import annotations
 from math import tanh
 
 
-Data = int | float
+Data = int | float | complex
 
 
 class Value:
@@ -23,11 +23,13 @@ class Value:
         pass
 
     def backward(self) -> None:
+        # TODO: Topological sort to only do this once per node in graph
         self._backward()
         for child in self.children:
             child.backward()
 
     def forward(self) -> None:
+        # TODO: Topological sort to only do this once per node in graph
         for parent in self.parents:
             parent.forward()
         self._forward()
@@ -39,46 +41,44 @@ class Value:
     def __repr__(self) -> str:
         return f"Value(data={self.data}, grad={self.grad})"
 
-    def __add__(self, other: Data | Value) -> Value:
-        assert isinstance(other, (int, float, Value)), other
-        other = other if isinstance(other, Value) else Value(data=other)
-        return _ValueSum(self.data + other.data, (self, other))
-
-    def __radd__(self, other: Data) -> Value:
-        return self + other
-
-    def __mul__(self, other: Value) -> Value:
-        assert isinstance(other, (int, float, Value)), other
-        other = other if isinstance(other, Value) else Value(data=other)
-        return _ValueProd(self.data * other.data, (self, other))
-
-    def __rmul__(self, other: Data) -> Value:
-        return self * other
-
-    def __neg__(self) -> Value:
-        return _ValueProd(-self.data, (self, Value(-1)))
-
-    def __sub__(self, other: Data | Value) -> Value:
-        assert isinstance(other, (int, float, Value)), other
-        other = other if isinstance(other, Value) else Value(data=other)
-        return _ValueSum(self.data - other.data, (self, -other))
-
-    def __rsub__(self, other: Data) -> Value:
-        return self - other
-
-    def __truediv__(self, other: Data | Value) -> Value:
-        assert isinstance(other, (int, float, Value)), other
-        other = other if isinstance(other, Value) else Value(data=other)
-        return self * other.pow(-1)
-
-    def __rtruediv__(self, other: Data) -> Value:
-        return other * self.pow(-1)
-
     def tanh(self) -> Value:
         return _ValueTanh(tanh(self.data), self)
 
     def pow(self, k: int) -> Value:
         return _ValuePow(self.data**k, self, k)
+
+    def __add__(self, other: Data | Value) -> Value:
+        assert isinstance(other, (int, float, complex, Value)), other
+        other = other if isinstance(other, Value) else Value(other)
+        return _ValueSum(self.data + other.data, (self, other))
+
+    def __mul__(self, other: Value) -> Value:
+        assert isinstance(other, (int, float, complex, Value)), other
+        other = other if isinstance(other, Value) else Value(data=other)
+        return _ValueProd(self.data * other.data, (self, other))
+
+    def __truediv__(self, other: Data | Value) -> Value:
+        assert isinstance(other, (int, float, complex, Value)), other
+        other = other if isinstance(other, Value) else Value(data=other)
+        return self * other.pow(-1)
+
+    def __radd__(self, other: Data) -> Value:
+        return self + other
+
+    def __rmul__(self, other: Data) -> Value:
+        return self * other
+
+    def __neg__(self) -> Value:
+        return -1 * self
+
+    def __sub__(self, other: Data | Value) -> Value:
+        return self + (-other)
+
+    def __rsub__(self, other: Data) -> Value:
+        return self - other
+
+    def __rtruediv__(self, other: Data) -> Value:
+        return self.pow(-1) * other
 
 
 class _ValueSum(Value):
